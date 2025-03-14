@@ -1,0 +1,22 @@
+{
+  "name": "electron-react-template",
+  "version": "1.0.0",
+  "description": "",
+  "main": "electron/main.js",
+  "scripts": {
+    "start": "concurrently \"npm run react-start\" \"npm run electron-start\"",
+    "react-start": "cd frontend && npm start",
+    "electron-start": "wait-on http://localhost:3000 && electron ."
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "concurrently": "^9.1.2",
+    "electron": "^35.0.1"
+  },
+  "dependencies": {
+    "electron-builder": "^25.1.8",
+    "wait-on": "^8.0.3"
+  }
+}
