@@ -1,24 +1,36 @@
-import logo from './logo.svg';
-import './App.css';
+import React, { useEffect, useState } from 'react';
 
 function App() {
+  const [data, setData] = useState({});
+  const [inputValue, setInputValue] = useState("");
+
+  // Load Data on Startup
+  useEffect(() => {
+    window.electronAPI.readJson().then(response => {
+      setData(response);
+    });
+  }, []);
+
+  // Save Data to JSON File
+  const saveData = () => {
+    const newData = { message: inputValue };
+    window.electronAPI.writeJson(newData).then(response => {
+      alert(response.message);
+      setData(newData);
+    });
+  };
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+      <div>
+        <h1>Electron + React JSON Storage</h1>
+        <p>Stored Message: {data.message}</p>
+        <input
+            type="text"
+            value={inputValue}
+            onChange={(e) => setInputValue(e.target.value)}
+        />
+        <button onClick={saveData}>Save Data</button>
+      </div>
   );
 }
 
