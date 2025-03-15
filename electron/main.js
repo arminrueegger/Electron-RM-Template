@@ -1,28 +1,33 @@
 const { app, BrowserWindow, ipcMain } = require("electron");
 const path = require("path");
+const isDev = process.env.NODE_ENV === 'development';
 const db = require('./database');
 
 let mainWindow;
 
 function createWindow() {
-    mainWindow = new BrowserWindow({
+    const win = new BrowserWindow({
         width: 1200,
         height: 800,
         webPreferences: {
+            preload: path.join(__dirname, 'preload.js'),
             nodeIntegration: false,
-            contextIsolation: true,
-            preload: path.join(__dirname, 'preload.js')
+            contextIsolation: true
         }
     });
 
-    // In development, load from React dev server
+    // In development, use the dev server
     if (process.env.NODE_ENV === 'development') {
-        mainWindow.loadURL('http://localhost:3000');
-        mainWindow.webContents.openDevTools();
+        win.loadURL('http://localhost:3000');
     } else {
-        // In production, load the built index.html
-        mainWindow.loadFile(path.join(__dirname, '../frontend/build/index.html'));
+        // In production, use the built files
+        win.loadFile(path.join(__dirname, '../build/index.html'));
     }
+
+    // Prevent opening external URLs
+    win.webContents.setWindowOpenHandler(({ url }) => {
+        return { action: 'deny' };
+    });
 }
 
 app.whenReady().then(createWindow);

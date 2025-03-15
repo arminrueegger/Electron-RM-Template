@@ -121,6 +121,7 @@ db.serialize(() => {
                                 db.run('ROLLBACK');
                             } else {
                                 console.log('Sample data inserted successfully');
+                                insertWorkouts();
                             }
                         });
                         return;
@@ -162,6 +163,86 @@ db.serialize(() => {
                 };
 
                 insertTemplate(0);
+            };
+
+            const insertWorkouts = () => {
+                const workouts = [
+                    {
+                        name: 'Morning Workout',
+                        start_time: '2024-03-15 08:00:00',
+                        end_time: '2024-03-15 09:00:00',
+                        exercises: [
+                            {
+                                name: 'Bench Press',
+                                sets: [
+                                    { weight: 60, reps: 10 },
+                                    { weight: 70, reps: 8 },
+                                    { weight: 75, reps: 6 }
+                                ]
+                            },
+                            {
+                                name: 'Squat',
+                                sets: [
+                                    { weight: 80, reps: 8 },
+                                    { weight: 90, reps: 6 },
+                                    { weight: 100, reps: 4 }
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        name: 'Evening Session',
+                        start_time: '2024-03-15 18:00:00',
+                        end_time: '2024-03-15 19:00:00',
+                        exercises: [
+                            {
+                                name: 'Pull-ups',
+                                sets: [
+                                    { weight: 0, reps: 12 },
+                                    { weight: 0, reps: 10 },
+                                    { weight: 0, reps: 8 }
+                                ]
+                            },
+                            {
+                                name: 'Deadlift',
+                                sets: [
+                                    { weight: 100, reps: 5 },
+                                    { weight: 120, reps: 3 },
+                                    { weight: 130, reps: 2 }
+                                ]
+                            }
+                        ]
+                    }
+                ];
+
+                workouts.forEach(workout => {
+                    db.run(
+                        'INSERT INTO workouts (name, start_time, end_time) VALUES (?, ?, ?)',
+                        [workout.name, workout.start_time, workout.end_time],
+                        function(err) {
+                            if (err) {
+                                console.error('Error inserting workout:', err);
+                                return;
+                            }
+                            const workoutId = this.lastID;
+
+                            workout.exercises.forEach(exercise => {
+                                db.get('SELECT id FROM exercises WHERE name = ?', [exercise.name], (err, row) => {
+                                    if (err || !row) {
+                                        console.error('Error getting exercise id:', err);
+                                        return;
+                                    }
+                                    exercise.sets.forEach((set, setIndex) => {
+                                        db.run(
+                                            'INSERT INTO workout_exercises (workout_id, exercise_id, set_number, weight, reps) VALUES (?, ?, ?, ?, ?)',
+                                            [workoutId, row.id, setIndex + 1, set.weight, set.reps]
+                                        );
+                                    });
+                                });
+                            });
+                        }
+                    );
+                });
             };
 
             insertExercise(0);
