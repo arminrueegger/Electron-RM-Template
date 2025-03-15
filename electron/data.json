@@ -1,5 +1,8 @@
 {
-  "workouts": [],
+  "workouts": [
+    { "name": "Morning Workout", "duration": 45 },
+    { "name": "Evening Cardio", "duration": 30 }
+  ],
   "templates": [],
   "exercises": []
 }

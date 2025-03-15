@@ -5,7 +5,7 @@ const path = require("path");
 let mainWindow;
 const dataFile = path.join(__dirname, "data.json");
 
-// Ensure the JSON file exists
+// Ensure JSON file is initialized
 if (!fs.existsSync(dataFile)) {
     fs.writeFileSync(dataFile, JSON.stringify({ workouts: [], templates: [], exercises: [] }, null, 2));
 }
@@ -13,7 +13,7 @@ if (!fs.existsSync(dataFile)) {
 // Function to load data
 const loadData = () => {
     try {
-        const fileData = fs.readFileSync(dataFile);
+        const fileData = fs.readFileSync(dataFile, "utf8");
         return JSON.parse(fileData);
     } catch (error) {
         console.error("⚠️ Error reading JSON file:", error);
@@ -26,6 +26,7 @@ const saveData = (data) => {
     fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
 };
 
+// Create Electron Window
 app.whenReady().then(() => {
     mainWindow = new BrowserWindow({
         width: 1200,
@@ -37,9 +38,17 @@ app.whenReady().then(() => {
         }
     });
 
-    mainWindow.loadURL("http://localhost:3000");
+    mainWindow.loadURL("http://localhost:3000");  // Ensure React is running here
 });
 
 // ✅ Register IPC handlers properly
-ipcMain.handle("getData", () => loadData());
-ipcMain.handle("saveData", (_, newData) => saveData(newData));
+ipcMain.handle("getData", () => {
+    const data = loadData();
+    console.log("🟢 Sending Data:", JSON.stringify(data, null, 2)); // ✅ Logs actual data
+    return data;
+});
+
+ipcMain.handle("saveData", (_, newData) => {
+    console.log("🟡 saveData called - saving new data");
+    saveData(newData);
+});

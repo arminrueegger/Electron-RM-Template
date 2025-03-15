@@ -5,7 +5,12 @@ function Workouts() {
 
     useEffect(() => {
         if (window.electron) {
-            window.electron.getData().then(setData).catch(console.error);
+            window.electron.getData()
+                .then((res) => {
+                    console.log("📥 Received Data in React:", res); // ✅ Check if React gets data
+                    setData(res);
+                })
+                .catch((err) => console.error("❌ Error getting data:", err));
         } else {
             console.warn("Electron API not available – Running in browser mode.");
         }
@@ -18,8 +23,8 @@ function Workouts() {
                 <p>No workouts available.</p>
             ) : (
                 <ul>
-                    {data.workouts.map((workout) => (
-                        <li key={workout.name}>
+                    {data.workouts.map((workout, index) => (
+                        <li key={index}>
                             {workout.name} ({workout.duration} min)
                         </li>
                     ))}
