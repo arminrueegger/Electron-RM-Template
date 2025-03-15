@@ -1,14 +1,14 @@
 {
-  "name": "electron-react-template",
+  "name": "athlitrack",
   "version": "1.0.0",
   "description": "",
   "main": "electron/main.js",
   "scripts": {
-    "start": "concurrently \"npm run react-start\" \"npm run electron-start\"",
-    "react-start": "cd frontend && npm start",
-    "electron-start": "wait-on http://localhost:3000 && electron .",
-    "react-build": "cd frontend && npm run build",
-    "build": "npm run react-build && electron-builder",
+    "start": "cd frontend && npm start",
+    "build": "cd frontend && npm run build",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject",
+    "electron-dev": "cross-env NODE_ENV=development concurrently \"cd frontend && npm start\" \"wait-on http://localhost:3000 && electron .\"",
     "electron": "electron ."
   },
   "build": {
@@ -32,11 +32,15 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "concurrently": "^9.1.2",
-    "electron": "^35.0.1",
-    "electron-builder": "^25.1.8"
+    "concurrently": "^8.2.0",
+    "cross-env": "^7.0.3",
+    "electron": "^25.0.0",
+    "electron-builder": "^25.1.8",
+    "wait-on": "^7.0.1"
   },
   "dependencies": {
-    "wait-on": "^8.0.3"
+    "autoprefixer": "^10.4.21",
+    "postcss": "^8.5.3",
+    "sqlite3": "^5.1.6"
   }
 }
