@@ -1,7 +1,7 @@
 {
   "name": "athlitrack",
   "version": "1.0.0",
-  "description": "",
+  "description": "Workout Tracking Application",
   "main": "electron/main.js",
   "scripts": {
     "start": "cd frontend && npm start",
@@ -9,11 +9,12 @@
     "test": "react-scripts test",
     "eject": "react-scripts eject",
     "electron-dev": "cross-env NODE_ENV=development concurrently \"cd frontend && npm start\" \"wait-on http://localhost:3000 && electron .\"",
-    "electron": "electron ."
+    "electron": "electron .",
+    "package": "electron-builder build --win"
   },
   "build": {
-    "appId": "com.yourcompany.yourapp",
-    "productName": "MyElectronApp",
+    "appId": "com.athlitrack.app",
+    "productName": "Athlitrack",
     "copyright": "Copyright © 2025",
     "directories": {
       "output": "dist"
@@ -25,7 +26,7 @@
     ],
     "win": {
       "target": "nsis",
-      "icon": "icon.ico"
+      "icon": "frontend/public/icon.ico"
     }
   },
   "keywords": [],

@@ -1,8 +1,8 @@
 version: 1.0.0
 files:
-  - url: MyElectronApp-Setup-1.0.0.exe
-    sha512: BehCE8pYlY0hTqE/eLqq27s6RGnykWB0pdolTpb1qsg5mT8noxScpMyWI2gbOImWdi00fEDB6Gv2hBz9sgGcLw==
-    size: 86521887
-path: MyElectronApp-Setup-1.0.0.exe
-sha512: BehCE8pYlY0hTqE/eLqq27s6RGnykWB0pdolTpb1qsg5mT8noxScpMyWI2gbOImWdi00fEDB6Gv2hBz9sgGcLw==
-releaseDate: '2025-03-15T07:42:37.040Z'
+  - url: Athlitrack-Setup-1.0.0.exe
+    sha512: 3FFNLoBZPofX/cTYzmvfSXG+D3Oam3WjmRR71taleyi1cfUIcuV6G1xeY4xc47t7R6VHhbw80FrrrmDBjsXyBA==
+    size: 76069940
+path: Athlitrack-Setup-1.0.0.exe
+sha512: 3FFNLoBZPofX/cTYzmvfSXG+D3Oam3WjmRR71taleyi1cfUIcuV6G1xeY4xc47t7R6VHhbw80FrrrmDBjsXyBA==
+releaseDate: '2025-03-15T10:14:48.690Z'

@@ -53,7 +53,6 @@ db.serialize(() => {
 
 // Add sample data in a separate transaction
 db.serialize(() => {
-    // First check if exercises table is empty
     db.get('SELECT COUNT(*) as count FROM exercises', (err, row) => {
         if (err) {
             console.error('Error checking exercises:', err);
@@ -67,14 +66,12 @@ db.serialize(() => {
 
         console.log('Initializing database with sample data...');
         
-        // Start transaction
         db.run('BEGIN TRANSACTION', (err) => {
             if (err) {
                 console.error('Error starting transaction:', err);
                 return;
             }
 
-            // Insert exercises sequentially
             const exercises = [
                 ['Bench Press', 'Barbell bench press for chest development', 'strength'],
                 ['Squat', 'Barbell back squat for leg strength', 'strength'],

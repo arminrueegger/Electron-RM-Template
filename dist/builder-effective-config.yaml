@@ -1,8 +1,8 @@
 directories:
   output: dist
   buildResources: build
-appId: com.yourcompany.yourapp
-productName: MyElectronApp
+appId: com.athlitrack.app
+productName: Athlitrack
 copyright: Copyright © 2025
 files:
   - filter:
@@ -11,5 +11,5 @@ files:
       - package.json
 win:
   target: nsis
-  icon: icon.ico
-electronVersion: 35.0.1
+  icon: frontend/public/icon.ico
+electronVersion: 25.9.8
