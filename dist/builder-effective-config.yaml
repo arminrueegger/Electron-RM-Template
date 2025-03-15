@@ -1,0 +1,15 @@
+directories:
+  output: dist
+  buildResources: build
+appId: com.yourcompany.yourapp
+productName: MyElectronApp
+copyright: Copyright © 2025
+files:
+  - filter:
+      - electron/**/*
+      - frontend/build/**/*
+      - package.json
+win:
+  target: nsis
+  icon: icon.ico
+electronVersion: 35.0.1
