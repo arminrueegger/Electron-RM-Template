@@ -1,50 +1,45 @@
-const { app, BrowserWindow, ipcMain } = require('electron');
-const path = require('path');
-const fs = require('fs');
-
-const dataFilePath = path.join(app.getPath('userData'), 'data.json');
+const { app, BrowserWindow, ipcMain } = require("electron");
+const fs = require("fs");
+const path = require("path");
 
 let mainWindow;
+const dataFile = path.join(__dirname, "data.json");
+
+// Ensure the JSON file exists
+if (!fs.existsSync(dataFile)) {
+    fs.writeFileSync(dataFile, JSON.stringify({ workouts: [], templates: [], exercises: [] }, null, 2));
+}
+
+// Function to load data
+const loadData = () => {
+    try {
+        const fileData = fs.readFileSync(dataFile);
+        return JSON.parse(fileData);
+    } catch (error) {
+        console.error("⚠️ Error reading JSON file:", error);
+        return { workouts: [], templates: [], exercises: [] };
+    }
+};
+
+// Function to save data
+const saveData = (data) => {
+    fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
+};
 
 app.whenReady().then(() => {
     mainWindow = new BrowserWindow({
-        width: 800,
-        height: 600,
+        width: 1200,
+        height: 800,
         webPreferences: {
-            preload: path.join(__dirname, 'preload.js'),
-            nodeIntegration: false, // Security best practice
+            preload: path.join(__dirname, "preload.js"),
             contextIsolation: true,
+            nodeIntegration: false
         }
     });
 
-    mainWindow.loadURL('http://localhost:3000'); // React Frontend
+    mainWindow.loadURL("http://localhost:3000");
 });
 
-// 📌 Function to Read Data from JSON File
-const readData = () => {
-    if (!fs.existsSync(dataFilePath)) {
-        return { message: "No data found" };
-    }
-    const data = fs.readFileSync(dataFilePath, 'utf-8');
-    return JSON.parse(data);
-};
-
-// 📌 Function to Write Data to JSON File
-const writeData = (newData) => {
-    fs.writeFileSync(dataFilePath, JSON.stringify(newData, null, 2), 'utf-8');
-};
-
-// 📌 IPC: React asks for data
-ipcMain.handle('read-json', async () => {
-    return readData();
-});
-
-// 📌 IPC: React sends data to save
-ipcMain.handle('write-json', async (event, newData) => {
-    writeData(newData);
-    return { status: "success", message: "Data saved successfully!" };
-});
-
-app.on('window-all-closed', () => {
-    if (process.platform !== 'darwin') app.quit();
-});
+// ✅ Register IPC handlers properly
+ipcMain.handle("getData", () => loadData());
+ipcMain.handle("saveData", (_, newData) => saveData(newData));

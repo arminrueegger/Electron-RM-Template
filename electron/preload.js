@@ -1,6 +1,6 @@
-const { contextBridge, ipcRenderer } = require('electron');
+const { contextBridge, ipcRenderer } = require("electron");
 
-contextBridge.exposeInMainWorld('electronAPI', {
-    readJson: () => ipcRenderer.invoke('read-json'),
-    writeJson: (data) => ipcRenderer.invoke('write-json', data)
+contextBridge.exposeInMainWorld("electron", {
+    getData: () => ipcRenderer.invoke("getData"),
+    saveData: (data) => ipcRenderer.invoke("saveData", data),
 });

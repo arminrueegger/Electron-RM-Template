@@ -8,7 +8,8 @@
     "react-start": "cd frontend && npm start",
     "electron-start": "wait-on http://localhost:3000 && electron .",
     "react-build": "cd frontend && npm run build",
-    "build": "npm run react-build && electron-builder"
+    "build": "npm run react-build && electron-builder",
+    "electron": "electron ."
   },
   "build": {
     "appId": "com.yourcompany.yourapp",
