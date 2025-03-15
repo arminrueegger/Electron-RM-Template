@@ -164,36 +164,67 @@ ipcMain.handle('saveWorkout', async (_, workout) => {
     return new Promise((resolve, reject) => {
         db.serialize(() => {
             db.run('BEGIN TRANSACTION');
-            try {
-                let workoutId = workout.id;
-                if (!workoutId) {
-                    db.run(
-                        'INSERT INTO workouts (name, start_time, end_time) VALUES (?, ?, ?)',
-                        [workout.name, workout.start_time, workout.end_time],
-                        function(err) {
-                            if (err) throw err;
-                            workoutId = this.lastID;
-                        }
-                    );
-                }
 
-                db.run('DELETE FROM workout_exercises WHERE workout_id = ?', [workoutId]);
-
-                workout.exercises.forEach(exercise => {
-                    exercise.sets.forEach((set, setIndex) => {
+            const saveWorkout = () => {
+                if (workout.id) {
+                    return new Promise((res, rej) => {
                         db.run(
-                            'INSERT INTO workout_exercises (workout_id, exercise_id, set_number, weight, reps) VALUES (?, ?, ?, ?, ?)',
-                            [workoutId, exercise.exercise_id, setIndex + 1, set.weight, set.reps]
+                            'UPDATE workouts SET name = ?, start_time = ?, end_time = ? WHERE id = ?',
+                            [workout.name, workout.start_time, workout.end_time, workout.id],
+                            (err) => {
+                                if (err) rej(err);
+                                res(workout.id);
+                            }
                         );
                     });
-                });
+                } else {
+                    return new Promise((res, rej) => {
+                        db.run(
+                            'INSERT INTO workouts (name, start_time, end_time) VALUES (?, ?, ?)',
+                            [workout.name, workout.start_time, workout.end_time],
+                            function(err) {
+                                if (err) rej(err);
+                                res(this.lastID);
+                            }
+                        );
+                    });
+                }
+            };
 
-                db.run('COMMIT');
-                resolve(workoutId);
-            } catch (err) {
-                db.run('ROLLBACK');
-                reject(err);
-            }
+            saveWorkout()
+                .then(workoutId => {
+                    return new Promise((res, rej) => {
+                        db.run('DELETE FROM workout_exercises WHERE workout_id = ?', [workoutId], (err) => {
+                            if (err) rej(err);
+                            res(workoutId);
+                        });
+                    });
+                })
+                .then(workoutId => {
+                    const promises = workout.exercises.flatMap(exercise =>
+                        exercise.sets.map((set, setIndex) =>
+                            new Promise((res, rej) => {
+                                db.run(
+                                    'INSERT INTO workout_exercises (workout_id, exercise_id, set_number, weight, reps) VALUES (?, ?, ?, ?, ?)',
+                                    [workoutId, exercise.exercise_id, setIndex + 1, set.weight, set.reps],
+                                    (err) => {
+                                        if (err) rej(err);
+                                        res();
+                                    }
+                                );
+                            })
+                        )
+                    );
+                    return Promise.all(promises).then(() => workoutId);
+                })
+                .then(workoutId => {
+                    db.run('COMMIT');
+                    resolve(workoutId);
+                })
+                .catch(err => {
+                    db.run('ROLLBACK');
+                    reject(err);
+                });
         });
     });
 });

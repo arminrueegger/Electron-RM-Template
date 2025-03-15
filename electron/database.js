@@ -49,62 +49,122 @@ db.serialize(() => {
         FOREIGN KEY (workout_id) REFERENCES workouts (id) ON DELETE CASCADE,
         FOREIGN KEY (exercise_id) REFERENCES exercises (id) ON DELETE CASCADE
     )`);
+});
 
-    // Check if exercises table is empty and add sample data
+// Add sample data in a separate transaction
+db.serialize(() => {
+    // First check if exercises table is empty
     db.get('SELECT COUNT(*) as count FROM exercises', (err, row) => {
         if (err) {
             console.error('Error checking exercises:', err);
             return;
         }
-        if (row.count > 0) return;
+        
+        if (row.count > 0) {
+            console.log('Database already has data, skipping initialization');
+            return;
+        }
 
-        // Add comprehensive sample exercises
-        const exercises = [
-            ['Bench Press', 'Barbell bench press for chest development', 'strength'],
-            ['Squat', 'Barbell back squat for leg strength', 'strength'],
-            ['Deadlift', 'Conventional deadlift for overall strength', 'strength'],
-            ['Pull-ups', 'Bodyweight back exercise', 'strength'],
-            ['Push-ups', 'Bodyweight chest exercise', 'bodyweight'],
-            ['Dumbbell Rows', 'Single-arm back exercise', 'strength'],
-            ['Shoulder Press', 'Overhead press for shoulders', 'strength'],
-            ['Lunges', 'Walking lunges for legs', 'strength'],
-            ['Plank', 'Core stability exercise', 'bodyweight'],
-            ['Bicep Curls', 'Isolation exercise for biceps', 'accessory']
-        ];
+        console.log('Initializing database with sample data...');
+        
+        // Start transaction
+        db.run('BEGIN TRANSACTION', (err) => {
+            if (err) {
+                console.error('Error starting transaction:', err);
+                return;
+            }
 
-        exercises.forEach(([name, description, type]) => {
-            db.run('INSERT INTO exercises (name, description, type) VALUES (?, ?, ?)',
-                [name, description, type], (err) => {
-                    if (err) console.error('Error inserting exercise:', err);
-                });
-        });
+            // Insert exercises sequentially
+            const exercises = [
+                ['Bench Press', 'Barbell bench press for chest development', 'strength'],
+                ['Squat', 'Barbell back squat for leg strength', 'strength'],
+                ['Deadlift', 'Conventional deadlift for overall strength', 'strength'],
+                ['Pull-ups', 'Bodyweight back exercise', 'strength'],
+                ['Push-ups', 'Bodyweight chest exercise', 'bodyweight'],
+                ['Dumbbell Rows', 'Single-arm back exercise', 'strength'],
+                ['Shoulder Press', 'Overhead press for shoulders', 'strength'],
+                ['Lunges', 'Walking lunges for legs', 'strength'],
+                ['Plank', 'Core stability exercise', 'bodyweight'],
+                ['Bicep Curls', 'Isolation exercise for biceps', 'accessory']
+            ];
 
-        // Add sample templates
-        const templates = [
-            ['Full Body Workout', [['Bench Press', 3, 8], ['Squat', 3, 8], ['Pull-ups', 3, 8]]],
-            ['Upper Body', [['Bench Press', 4, 8], ['Push-ups', 3, 12], ['Shoulder Press', 3, 10]]],
-            ['Lower Body', [['Squat', 4, 8], ['Deadlift', 3, 8], ['Lunges', 3, 12]]]
-        ];
-
-        templates.forEach(([name, exercises]) => {
-            db.run('INSERT INTO templates (name) VALUES (?)', [name], function(err) {
-                if (err) {
-                    console.error('Error inserting template:', err);
+            const insertExercise = (index) => {
+                if (index >= exercises.length) {
+                    insertTemplates();
                     return;
                 }
-                const templateId = this.lastID;
 
-                exercises.forEach(([exerciseName, sets, reps], index) => {
-                    db.get('SELECT id FROM exercises WHERE name = ?', [exerciseName], (err, row) => {
-                        if (!err && row) {
-                            db.run(
-                                'INSERT INTO template_exercises (template_id, exercise_id, sets, reps, position) VALUES (?, ?, ?, ?, ?)',
-                                [templateId, row.id, sets, reps, index]
-                            );
+                const [name, description, type] = exercises[index];
+                db.run('INSERT INTO exercises (name, description, type) VALUES (?, ?, ?)',
+                    [name, description, type], (err) => {
+                        if (err) {
+                            console.error('Error inserting exercise:', err);
+                            db.run('ROLLBACK');
+                            return;
                         }
+                        insertExercise(index + 1);
                     });
-                });
-            });
+            };
+
+            const insertTemplates = () => {
+                const templates = [
+                    ['Full Body Workout', [['Bench Press', 3, 8], ['Squat', 3, 8], ['Pull-ups', 3, 8]]],
+                    ['Upper Body', [['Bench Press', 4, 8], ['Push-ups', 3, 12], ['Shoulder Press', 3, 10]]],
+                    ['Lower Body', [['Squat', 4, 8], ['Deadlift', 3, 8], ['Lunges', 3, 12]]]
+                ];
+
+                const insertTemplate = (index) => {
+                    if (index >= templates.length) {
+                        db.run('COMMIT', (err) => {
+                            if (err) {
+                                console.error('Error committing transaction:', err);
+                                db.run('ROLLBACK');
+                            } else {
+                                console.log('Sample data inserted successfully');
+                            }
+                        });
+                        return;
+                    }
+
+                    const [name, exercises] = templates[index];
+                    db.run('INSERT INTO templates (name) VALUES (?)', [name], function(err) {
+                        if (err) {
+                            console.error('Error inserting template:', err);
+                            db.run('ROLLBACK');
+                            return;
+                        }
+                        const templateId = this.lastID;
+                        let exercisesInserted = 0;
+
+                        exercises.forEach(([exerciseName, sets, reps], position) => {
+                            db.get('SELECT id FROM exercises WHERE name = ?', [exerciseName], (err, row) => {
+                                if (err || !row) {
+                                    console.error('Error getting exercise id:', err);
+                                    return;
+                                }
+                                db.run(
+                                    'INSERT INTO template_exercises (template_id, exercise_id, sets, reps, position) VALUES (?, ?, ?, ?, ?)',
+                                    [templateId, row.id, sets, reps, position],
+                                    (err) => {
+                                        if (err) {
+                                            console.error('Error inserting template exercise:', err);
+                                            return;
+                                        }
+                                        exercisesInserted++;
+                                        if (exercisesInserted === exercises.length) {
+                                            insertTemplate(index + 1);
+                                        }
+                                    }
+                                );
+                            });
+                        });
+                    });
+                };
+
+                insertTemplate(0);
+            };
+
+            insertExercise(0);
         });
     });
 });
